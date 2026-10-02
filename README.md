@@ -43,3 +43,4 @@ Run the Phase 1 flow check:
 ```
 
 PostgreSQL is the source of truth. Farm and buyer-request locations use indexed PostGIS geography points; grouped-order finalization locks inventory rows before reserving stock. Road-routing distance remains a later milestone.
+# Farmers_MarketPlace
