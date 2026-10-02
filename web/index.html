@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harvest Hub</title>
+  <style>
+    :root { --ink:#17221b; --muted:#66736a; --paper:#f8faf5; --card:#fff; --line:#dfe8df; --green:#19764a; --purple:#5733a5; --soft:#e9f4e9; --danger:#b42318; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.5 Arial,sans-serif; }
+    header { background:var(--purple); color:#fff; padding:22px clamp(20px,5vw,72px); }
+    header h1 { margin:0; font-size:clamp(28px,4vw,46px); letter-spacing:-.04em; }
+    header p { margin:6px 0 0; color:#e7ddff; }
+    main { max-width:1180px; margin:0 auto; padding:28px 20px 64px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; align-items:start; }
+    .wide { grid-column:1/-1; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 8px 24px #1c3b2510; }
+    h2,h3 { margin:0 0 14px; letter-spacing:-.02em; }
+    h2 { font-size:23px; } h3 { font-size:18px; }
+    label { display:block; font-weight:700; margin:12px 0 5px; }
+    input,select,button { width:100%; min-height:44px; border-radius:9px; font:inherit; }
+    input,select { border:1px solid #b9c9ba; padding:9px 11px; background:#fff; color:var(--ink); }
+    button { border:0; padding:9px 14px; background:var(--green); color:#fff; font-weight:700; cursor:pointer; transition:transform .2s,filter .2s; }
+    button:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #a78bfa; outline-offset:2px; }
+    button.secondary { background:#edf3ee; color:var(--green); border:1px solid #bfd3c0; }
+    .actions { display:flex; gap:10px; margin-top:15px; } .actions button { flex:1; }
+    .muted { color:var(--muted); } .status { min-height:25px; margin:12px 0 0; color:var(--green); font-weight:700; }
+    .status.error { color:var(--danger); }
+    .hidden { display:none !important; }
+    .pill { display:inline-block; background:var(--soft); color:var(--green); border-radius:999px; padding:4px 9px; font-size:13px; font-weight:700; }
+    .lot { display:flex; justify-content:space-between; gap:16px; padding:14px 0; border-top:1px solid var(--line); }
+    .lot:first-child { border-top:0; padding-top:0; }
+    .lot strong { display:block; font-size:18px; }
+    .lot button { width:auto; white-space:nowrap; align-self:center; }
+    .topline { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
+    .topline button { width:auto; }
+    @media (max-width:600px) { .lot { display:block; } .lot button { width:100%; margin-top:10px; } .actions { flex-direction:column; } }
+    @media (prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Harvest Hub</h1>
+    <p>Test the farmer-to-buyer marketplace flow.</p>
+  </header>
+  <main>
+    <div id="globalStatus" class="status" role="status" aria-live="polite"></div>
+    <section id="authCard" class="card">
+      <h2>Get started</h2>
+      <p class="muted">Create a test account or sign in to continue.</p>
+      <button id="demoButton" class="secondary" type="button">Load demo data</button>
+      <p class="muted">This resets the in-memory store with sample farmers, farms, listings, and an accepted order.</p>
+      <div class="grid">
+        <form id="registerForm">
+          <h3>Register</h3>
+          <label for="registerEmail">Email</label><input id="registerEmail" name="email" type="email" required>
+          <label for="registerPassword">Password</label><input id="registerPassword" name="password" type="password" minlength="8" required>
+          <label for="registerRole">Role</label><select id="registerRole" name="role"><option value="buyer">Buyer</option><option value="farmer">Farmer</option></select>
+          <div class="actions"><button>Create account</button></div>
+        </form>
+        <form id="loginForm">
+          <h3>Sign in</h3>
+          <label for="loginEmail">Email</label><input id="loginEmail" name="email" type="email" required>
+          <label for="loginPassword">Password</label><input id="loginPassword" name="password" type="password" required>
+          <div class="actions"><button>Sign in</button></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="app" class="hidden">
+      <div class="topline"><div><span class="pill" id="sessionLabel"></span><p class="muted">The API store resets when the server restarts.</p></div><button id="logout" class="secondary">Sign out</button></div>
+      <div class="grid">
+        <div id="farmerTools" class="card hidden">
+          <h2>Farmer tools</h2>
+          <form id="profileForm"><h3>Farmer profile</h3><label for="displayName">Display name</label><input id="displayName" name="display_name" required><label for="phone">Phone</label><input id="phone" name="phone"><button>Create profile</button></form>
+          <form id="farmForm"><h3>Farm</h3><label for="farmName">Farm name</label><input id="farmName" name="name" required><label for="latitude">Latitude</label><input id="latitude" name="latitude" type="number" step="any" required><label for="longitude">Longitude</label><input id="longitude" name="longitude" type="number" step="any" required><button>Create farm</button></form>
+          <form id="lotForm"><h3>Produce listing</h3><label for="farmId">Farm ID</label><input id="farmId" required><label for="product">Product</label><input id="product" placeholder="Tomatoes" required><label for="quantity">Quantity (kg)</label><input id="quantity" type="number" min="0.01" step="0.01" required><label for="price">Price per kg</label><input id="price" type="number" min="0.01" step="0.01" required><button>Create listing</button></form>
+        </div>
+        <div class="card">
+          <h2>Browse produce</h2>
+          <form id="filterForm" class="actions"><input id="filterProduct" placeholder="Product"><input id="filterPrice" type="number" step="any" placeholder="Max price"><button>Refresh</button></form>
+          <div id="lots" class="muted">Loading listings…</div>
+        </div>
+        <div id="orderTools" class="card">
+          <h2>Order tester</h2>
+          <div id="buyerRequestTools">
+            <h3>Open a buyer request</h3>
+            <p class="muted">This records demand before it is matched to a farmer lot.</p>
+            <form id="requestForm"><label for="requestProduct">Product wanted</label><input id="requestProduct" required><label for="requestQuantity">Quantity (kg)</label><input id="requestQuantity" type="number" min="0.01" step="0.01" required><label for="requestPrice">Maximum price per kg</label><input id="requestPrice" type="number" min="0.01" step="0.01"><label for="requestLatitude">Pickup latitude</label><input id="requestLatitude" type="number" step="any" required><label for="requestLongitude">Pickup longitude</label><input id="requestLongitude" type="number" step="any" required><button>Open request</button></form>
+            <label for="requestId">Request ID</label><input id="requestId" placeholder="req_…"><button id="findMatches" class="secondary" type="button">Find nearby supply</button><div id="matchStatus" class="status" role="status" aria-live="polite"></div>
+          </div>
+          <p class="muted">Use an order ID here to test farmer acceptance and buyer completion.</p>
+          <form id="orderForm"><label for="orderLot">Lot ID</label><input id="orderLot" required><label for="orderQuantity">Quantity (kg)</label><input id="orderQuantity" type="number" min="0.01" step="0.01" required><button>Create order</button></form>
+          <label for="orderId">Order ID</label><input id="orderId" placeholder="ord_…"><div class="actions"><button id="acceptOrder" class="secondary" type="button">Accept order</button><button id="completeOrder" class="secondary" type="button">Complete order</button></div>
+          <div id="orderStatus" class="status" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let token = '';
+    const setStatus = (message, error = false) => { $('globalStatus').textContent = message; $('globalStatus').className = `status${error ? ' error' : ''}`; };
+    const request = async (path, options = {}) => {
+      const headers = { 'Content-Type':'application/json', ...(options.headers || {}) };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(path, { ...options, headers });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+      return data;
+    };
+    const showApp = (session) => {
+      token = session.token; $('authCard').classList.add('hidden'); $('app').classList.remove('hidden'); $('sessionLabel').textContent = `${session.role} · ${session.user_id}`; if (session.order_id) $('orderId').value = session.order_id; if (session.request_id) $('requestId').value = session.request_id;
+      $('farmerTools').classList.toggle('hidden', session.role !== 'farmer'); loadLots();
+      $('buyerRequestTools').classList.toggle('hidden', session.role !== 'buyer');
+    };
+    const formData = (form) => Object.fromEntries(new FormData(form));
+    $('registerForm').addEventListener('submit', async (event) => { event.preventDefault(); try { showApp(await request('/auth/register', { method:'POST', body:JSON.stringify(formData(event.target)) })); setStatus('Account created.'); } catch (error) { setStatus(error.message, true); } });
+    $('loginForm').addEventListener('submit', async (event) => { event.preventDefault(); try { showApp(await request('/auth/login', { method:'POST', body:JSON.stringify(formData(event.target)) })); setStatus('Signed in.'); } catch (error) { setStatus(error.message, true); } });
+    $('logout').addEventListener('click', () => { token = ''; $('app').classList.add('hidden'); $('authCard').classList.remove('hidden'); setStatus('Signed out.'); });
+    $('demoButton').addEventListener('click', async () => { try { showApp(await request('/demo/seed', { method:'POST' })); setStatus('Demo data loaded. You are signed in as the demo buyer.'); } catch (error) { setStatus(error.message, true); } });
+    $('profileForm').addEventListener('submit', async (event) => { event.preventDefault(); try { await request('/farmer-profile', { method:'POST', body:JSON.stringify(formData(event.target)) }); setStatus('Farmer profile created.'); } catch (error) { setStatus(error.message, true); } });
+    $('farmForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const farm = await request('/farms', { method:'POST', body:JSON.stringify(formData(event.target)) }); $('farmId').value = farm.id; setStatus(`Farm created: ${farm.id}`); } catch (error) { setStatus(error.message, true); } });
+    $('lotForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const lot = await request('/lots', { method:'POST', body:JSON.stringify({ farm_id:$('farmId').value, product:$('product').value, quantity_kg:Number($('quantity').value), price_per_kg:Number($('price').value) }) }); setStatus(`Listing created: ${lot.id}`); loadLots(); } catch (error) { setStatus(error.message, true); } });
+    $('requestForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const requestData = await request('/buyer-requests', { method:'POST', body:JSON.stringify({ product:$('requestProduct').value, quantity_kg:Number($('requestQuantity').value), max_price_per_kg:$('requestPrice').value ? Number($('requestPrice').value) : null, latitude:Number($('requestLatitude').value), longitude:Number($('requestLongitude').value) }) }); $('requestId').value = requestData.id; setStatus(`Buyer request opened: ${requestData.id}`); } catch (error) { setStatus(error.message, true); } });
+    $('findMatches').addEventListener('click', async () => { try { const plan = await request(`/buyer-requests/${$('requestId').value}/matches`); const details = plan.allocations.map((allocation) => `${allocation.quantity_kg} kg from ${allocation.lot_id} (${allocation.distance_km} km)`).join(' + '); $('matchStatus').textContent = `${plan.complete ? 'Complete' : 'Partial'} match: ${details || 'no eligible lots'}`; $('matchStatus').classList.remove('error'); } catch (error) { $('matchStatus').textContent = error.message; $('matchStatus').classList.add('error'); } });
+    $('filterForm').addEventListener('submit', (event) => { event.preventDefault(); loadLots(); });
+    async function loadLots() { try { const params = new URLSearchParams(); if ($('filterProduct').value) params.set('product', $('filterProduct').value); if ($('filterPrice').value) params.set('max_price', $('filterPrice').value); const lots = await request(`/products?${params}`); $('lots').innerHTML = lots.length ? lots.map((lot) => `<div class="lot"><div><strong>${lot.product}</strong><span class="muted">${lot.quantity_kg} kg · ${lot.price_per_kg}/kg · ${lot.id}</span></div><button type="button" data-lot="${lot.id}">Use lot</button></div>`).join('') : '<p class="muted">No active listings yet.</p>'; document.querySelectorAll('[data-lot]').forEach((button) => button.addEventListener('click', () => { $('orderLot').value = button.dataset.lot; $('orderLot').focus(); })); } catch (error) { $('lots').textContent = error.message; } }
+    $('orderForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const order = await request('/orders', { method:'POST', body:JSON.stringify({ lot_id:$('orderLot').value, quantity_kg:Number($('orderQuantity').value) }) }); $('orderId').value = order.id; $('orderStatus').textContent = `${order.id}: ${order.status}`; } catch (error) { $('orderStatus').textContent = error.message; $('orderStatus').classList.add('error'); } });
+    async function changeOrder(action) { try { const order = await request(`/orders/${$('orderId').value}/${action}`, { method:'POST' }); $('orderStatus').textContent = `${order.id}: ${order.status}`; $('orderStatus').classList.remove('error'); } catch (error) { $('orderStatus').textContent = error.message; $('orderStatus').classList.add('error'); } }
+    $('acceptOrder').addEventListener('click', () => changeOrder('accept')); $('completeOrder').addEventListener('click', () => changeOrder('complete'));
+  </script>
+</body>
+</html>
