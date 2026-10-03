@@ -22,7 +22,7 @@ class Credentials(BaseModel):
 
 
 class Registration(Credentials):
-    role: Literal["farmer", "buyer"] = "buyer"
+    role: Literal["farmer", "buyer", "transporter"] = "buyer"
 
 
 def hash_password(password: str) -> str:

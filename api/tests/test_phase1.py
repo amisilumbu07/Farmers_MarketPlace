@@ -22,16 +22,18 @@ def test_marketplace_flow(db):
     session, demo = db
     lot = session.get(Lot, "lot_demo_tomatoes_sunrise")
     order = create_order(session, demo["user_id"], lot.id, 50)
-    assert transition(order, "ACCEPTED").status == "ACCEPTED"
-    assert transition(order, "COMPLETED").status == "COMPLETED"
+    for status in ("ACCEPTED", "READY_FOR_PICKUP", "IN_TRANSIT", "DELIVERED", "COMPLETED"):
+        assert transition(order, status).status == status
     assert lot.active is False
+    with pytest.raises(HTTPException):  # delivery can no longer be skipped
+        transition(create_order(session, demo["user_id"], "lot_demo_cabbage", 5), "COMPLETED")
 
 
 def test_demo_seed_is_persisted(db):
     session, demo = db
     session.commit()
     with SessionLocal() as other_session:
-        assert other_session.scalar(select(func.count()).select_from(User)) == 4
+        assert other_session.scalar(select(func.count()).select_from(User)) == 5
         assert other_session.get(Order, demo["order_id"]).status == "ACCEPTED"
         assert other_session.get(BuyerRequest, demo["request_id"]).status == "OPEN"
 
@@ -58,3 +60,25 @@ def test_complete_match_creates_grouped_orders_once(db):
     with pytest.raises(HTTPException) as error:
         create_grouped_orders(session, demo["request_id"], demo["user_id"])
     assert error.value.status_code == 409
+
+
+def test_insufficient_supply_is_partial_and_not_orderable(db):
+    session, demo = db
+    request = session.get(BuyerRequest, demo["request_id"])
+    request.quantity_kg = 10_000
+    plan = MatchingEngine().match(session, request)
+    assert plan.complete is False
+    assert 0 < plan.allocated_quantity_kg < 10_000
+    with pytest.raises(HTTPException) as error:
+        create_grouped_orders(session, demo["request_id"], demo["user_id"])
+    assert error.value.status_code == 409
+
+
+def test_ranking_is_deterministic_and_best_first(db):
+    session, demo = db
+    request = session.get(BuyerRequest, demo["request_id"])
+    request.quantity_kg = 10_000
+    first = MatchingEngine().match(session, request).allocations
+    second = MatchingEngine().match(session, request).allocations
+    assert first == second
+    assert [a.score for a in first] == sorted(a.score for a in first)

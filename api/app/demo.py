@@ -11,12 +11,14 @@ router = APIRouter(prefix="/demo", tags=["demo"])
 
 
 @router.post("/seed")
-def seed(role: Literal["buyer", "farmer", "admin"] = "buyer", db: Session = Depends(get_db)):
+def seed(role: Literal["buyer", "farmer", "admin", "transporter"] = "buyer", db: Session = Depends(get_db)):
     if os.getenv("ENABLE_DEMO_SEED", "1") != "1":
         raise HTTPException(status_code=404, detail="Demo seeding is disabled")
     data = seed_demo_data(db)
     if role == "farmer":
         return data["farmer_session"]
+    if role == "transporter":
+        return data["transporter_session"]
     if role == "admin":
         return data["admin_session"]
     return data
