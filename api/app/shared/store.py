@@ -3,7 +3,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 from geoalchemy2 import Geography
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Numeric, String, UniqueConstraint, func
+from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -207,3 +207,20 @@ class Dispute(Base):
     resolution: Mapped[str | None] = mapped_column(String(10))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ExternalTransaction(Base):
+    """One call to an outside payment/ledger system. Provider-specific ids live here and nowhere else."""
+    __tablename__ = "external_transactions"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    idempotency_key: Mapped[str] = mapped_column(String(120), unique=True)
+    provider: Mapped[str] = mapped_column(String(20))  # mock / fiat / solana / x402 later
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), index=True)
+    purpose: Mapped[str] = mapped_column(String(20))  # order / attestation / settlement
+    external_id: Mapped[str | None] = mapped_column(String(128))  # e.g. Solana signature
+    amount: Mapped[int] = mapped_column(default=0)  # minor units
+    currency: Mapped[str] = mapped_column(String(8), default="USD")
+    status: Mapped[str] = mapped_column(String(10), default="PENDING")  # PENDING / CONFIRMED / FAILED
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

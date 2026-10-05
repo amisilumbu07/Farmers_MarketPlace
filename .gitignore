@@ -8,3 +8,5 @@ tmp/
 graphify-out/
 .claude/
 .agents/
+blockchain/solana/target/
+blockchain/solana/.anchor/

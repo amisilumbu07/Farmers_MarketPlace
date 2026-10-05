@@ -1,0 +1,11 @@
+[toolchain]
+
+[programs.localnet]
+marketplace_settlement = "9ZZ5bejD4NdPr7zf9covKHDig6tcqh628Fdtrm4mT9MU"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
