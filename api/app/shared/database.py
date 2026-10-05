@@ -4,6 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://marketplace:marketplace@127.0.0.1:5432/marketplace")
+# Vercel/Neon inject plain postgresql:// (or postgres://); force the psycopg3 driver.
+DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1).replace("postgresql://", "postgresql+psycopg://", 1)
 
 
 class Base(DeclarativeBase):
