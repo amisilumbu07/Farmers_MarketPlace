@@ -60,4 +60,4 @@ Two Vercel projects, both auto-deploy from `main`: backend `farmers-market-place
 
 ## Conventions
 
-Code follows a minimal style: shortcuts with a known ceiling are marked `# ponytail:` with the upgrade path (for example, chain calls run inside the request until a worker exists).
+Code follows a minimal style: shortcuts with a known ceiling are marked `# ponytail:` with the upgrade path (for example, the cron batch in `process_queue` is one pass per tick).
