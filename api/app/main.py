@@ -13,7 +13,7 @@ from .demo import router as demo_router
 from .farms.routes import router as farms_router
 from .logistics.routes import router as logistics_router
 from .orders.routes import router as orders_router
-from .payments.routes import router as payments_router
+from .payments.routes import cron as payments_cron, router as payments_router
 from .trust.routes import router as trust_router
 from .users.routes import router as users_router
 from .shared.database import get_db
@@ -34,6 +34,7 @@ app.include_router(demo_router)
 app.include_router(logistics_router)
 app.include_router(orders_router)
 app.include_router(payments_router)
+app.include_router(payments_cron)
 app.include_router(trust_router)
 app.include_router(users_router)
 

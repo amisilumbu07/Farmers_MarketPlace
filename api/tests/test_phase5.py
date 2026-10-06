@@ -41,10 +41,10 @@ def test_chain_failure_never_blocks_orders_and_retry_recovers(db, provider):  # 
     assert order.status == "COMPLETED"
     assert ("attestation", "FAILED") in rows(session, order.id)
     provider.fail = False
-    service.retry_failed(session)
+    service.process_queue(session)
     assert {s for _, s in rows(session, order.id)} == {"CONFIRMED"}
     assert provider.status[order.id] == "COMPLETED"
-    assert len(service.retry_failed(session)) == 0
+    assert len(service.process_queue(session)) == 0
 
 
 def test_solana_adapter_encodes_anchor_calls():
@@ -111,3 +111,46 @@ def test_settle_retry_is_idempotent_and_conflicts_surface():
     assert sent == []
     provider, sent = retrying_provider(chain_account(status=0))
     assert provider.refund("ord_1") == "sig1" and len(sent) == 1
+
+
+def test_real_chain_sends_wait_for_the_queue_and_keep_order(db, monkeypatch):  # noqa: F811
+    session, _ = db
+    calls = []
+
+    class SlowChain(MockPaymentProvider):
+        name = "solana"
+
+        def create_payment(self, order_id, amount_minor):
+            calls.append("commit")
+            return super().create_payment(order_id, amount_minor)
+
+        def attest(self, order_id, attestation_hash, seq=None):
+            calls.append(f"attest{seq}")
+            return super().attest(order_id, attestation_hash, seq)
+
+        def capture(self, order_id):
+            calls.append("settle")
+            return super().capture(order_id)
+
+    monkeypatch.setattr(service, "_provider", SlowChain())
+    for purpose, key, meta in (("settlement", "settle", {"outcome": "capture"}), ("attestation", "attest:b", {"hash": "00" * 32, "seq": 1}), ("attestation", "attest:a", {"hash": "00" * 32, "seq": 0}), ("order", "commit", {})):
+        service.enqueue(session, "ord_demo_pool_2", purpose, key, **meta)  # same transaction, so the same timestamp: order must not depend on insertion
+    assert calls == [] and {s for _, s in rows(session, "ord_demo_pool_2")} == {"PENDING"}  # nothing sent inside the request
+    assert len(service.process_queue(session)) == 4
+    assert calls == ["commit", "attest0", "attest1", "settle"]
+    assert len(service.process_queue(session)) == 0
+
+
+def test_cron_route_needs_the_secret(monkeypatch, db):  # noqa: F811
+    from fastapi import HTTPException
+
+    from api.app.payments.routes import run_queue
+
+    session, _ = db
+    monkeypatch.delenv("CRON_SECRET", raising=False)
+    with pytest.raises(HTTPException):
+        run_queue(authorization="Bearer x", db=session)  # unset secret means disabled, even for a matching header
+    monkeypatch.setenv("CRON_SECRET", "s3cret")
+    with pytest.raises(HTTPException):
+        run_queue(authorization="Bearer nope", db=session)
+    assert run_queue(authorization="Bearer s3cret", db=session) == {"processed": 0}

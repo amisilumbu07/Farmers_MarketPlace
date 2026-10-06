@@ -10,3 +10,4 @@ graphify-out/
 .agents/
 blockchain/solana/target/
 blockchain/solana/.anchor/
+blockchain/solana/tests-svm/target/

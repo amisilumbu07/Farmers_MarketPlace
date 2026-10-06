@@ -1,5 +1,5 @@
 """Listens to order events and mirrors them to the configured provider. Chain trouble never blocks the marketplace:
-a failed call is stored as FAILED and retried via retry_failed()."""
+a failed call is stored as FAILED and replayed by process_queue()."""
 import hashlib
 import os
 
@@ -47,14 +47,15 @@ def execute(row: ExternalTransaction) -> ExternalTransaction:
 
 
 def enqueue(db: Session, order_id: str, purpose: str, key: str, amount: int = 0, **meta) -> ExternalTransaction:
-    """Idempotent: the same key is executed once (until it fails, then retry_failed picks it up)."""
+    """Idempotent: the same key is executed once (until it fails, then process_queue picks it up)."""
     key = f"{order_id}:{key}"
     row = db.scalar(select(ExternalTransaction).where(ExternalTransaction.idempotency_key == key))
     if row:
         return row
     row = ExternalTransaction(id=new_id("ext"), idempotency_key=key, provider=get_provider().name, order_id=order_id, purpose=purpose, amount=amount, metadata_json=meta)
     db.add(row)
-    return execute(row)  # ponytail: runs inside the request; move to a worker when RPC latency hurts
+    # the mock provider is instant, so it runs inline; a real chain stays PENDING until process_queue() (cron) sends it
+    return execute(row) if get_provider().name == "mock" else row
 
 
 def _committed(db: Session, order_id: str) -> bool:
@@ -66,9 +67,15 @@ def settle(db: Session, order_id: str, outcome: str) -> None:
         enqueue(db, order_id, "settlement", "settle", outcome=outcome)
 
 
-def retry_failed(db: Session) -> list[ExternalTransaction]:
-    rows = db.scalars(select(ExternalTransaction).where(ExternalTransaction.status == "FAILED").order_by(ExternalTransaction.created_at, ExternalTransaction.id)).all()
-    return [execute(row) for row in rows]  # created order matters: commit before attest before settle
+PURPOSE_RANK = {"order": 0, "attestation": 1, "settlement": 2}
+
+
+def process_queue(db: Session) -> list[ExternalTransaction]:
+    """Sends every PENDING or FAILED row. Rows of one request share a timestamp, so ties break commit, attest (by seq), settle.
+    Safe to run twice at once: rows are locked, and the chain adapter ignores a step that already landed."""
+    rows = db.scalars(select(ExternalTransaction).where(ExternalTransaction.status.in_(("PENDING", "FAILED"))).with_for_update(skip_locked=True)).all()
+    rows.sort(key=lambda r: (r.created_at, PURPOSE_RANK[r.purpose], r.metadata_json.get("seq") or 0))
+    return [execute(row) for row in rows]  # ponytail: one batch per cron tick; a failed commit makes later rows of that order fail and replay in order next tick
 
 
 @subscribe("order.status_changed")

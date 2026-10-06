@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends
+import os
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..shared.auth import require_role
 from ..shared.database import get_db
 from ..shared.store import ExternalTransaction
-from .service import retry_failed
+from .service import process_queue
 
 router = APIRouter(prefix="/admin/payments", tags=["payments"], dependencies=[Depends(require_role("admin"))])
 
@@ -22,4 +24,16 @@ def list_payments(status: str | None = None, db: Session = Depends(get_db)):
 
 @router.post("/retry")
 def retry(db: Session = Depends(get_db)):
-    return [view(t) for t in retry_failed(db)]
+    return [view(t) for t in process_queue(db)]
+
+
+cron = APIRouter(prefix="/payments", tags=["payments"])
+
+
+@cron.get("/cron")
+def run_queue(authorization: str | None = Header(None), db: Session = Depends(get_db)):
+    """Called by a scheduler (Vercel Cron sends `Authorization: Bearer $CRON_SECRET`). Disabled until CRON_SECRET is set."""
+    secret = os.getenv("CRON_SECRET")
+    if not secret or authorization != f"Bearer {secret}":
+        raise HTTPException(status_code=401, detail="Invalid cron secret")
+    return {"processed": len(process_queue(db))}

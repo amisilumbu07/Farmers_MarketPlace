@@ -1,0 +1,13 @@
+# Standalone crate (not in the Anchor workspace): runs the compiled .so in memory with LiteSVM, so no validator is needed.
+# Its Solana 2.x types do not clash with the program's Anchor 0.30.1 / Solana 1.18 because only bytes cross the boundary.
+[package]
+name = "settlement-tests"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dev-dependencies]
+litesvm = "0.6"
+solana-sdk = "2"
+sha2 = "0.10"
