@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Harvest Hub",
-  description: "Farmer marketplace matching demo",
+  title: "AgriLink",
+  description: "AgriLink: fresh produce from local farmers, with pooled transport",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

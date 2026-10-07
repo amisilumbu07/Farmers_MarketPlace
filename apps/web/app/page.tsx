@@ -15,6 +15,12 @@ type Dispute = { id: string; order_id: string; opened_by: string; reason: string
 type Reputation = { score: number; points: number; events: Record<string, number> };
 type AdminUser = { id: string; email: string; role: string; active: boolean };
 
+const KNOWN = ["tomatoes", "apples", "oranges", "mangoes", "peppers", "potatoes", "onions", "cabbage", "carrots", "bananas", "maize", "lettuce", "spinach"];
+const productImage = (name: string) => {
+  const k = name.toLowerCase().trim().replace(/s$/, "");
+  return `/products/${KNOWN.find((n) => n.replace(/s$/, "") === k) ?? "default"}.svg`;
+};
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 async function api<T>(path: string, options: RequestInit = {}, token = ""): Promise<T> {
@@ -26,6 +32,8 @@ async function api<T>(path: string, options: RequestInit = {}, token = ""): Prom
   if (!response.ok) throw new Error(data.detail ?? `Request failed (${response.status})`);
   return data as T;
 }
+
+const Logo = () => <svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#19764a" opacity=".12" /><path d="M20 10l4 5h-2v7h-4v-7h-2z" fill="#19764a" /><path d="M26 18c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H14c-1.1 0-2-.9-2-2v-8c0-1.1.9-2 2-2" fill="#ff9500" opacity=".7" /></svg>;
 
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
@@ -45,6 +53,7 @@ export default function Home() {
   const [history, setHistory] = useState<Record<string, History>>({});
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [reputation, setReputation] = useState<Reputation | null>(null);
+  const [query, setQuery] = useState("");
   const [disputeReason, setDisputeReason] = useState("Quality problem");
 
   const report = (text: string, isError = false) => { setMessage(text); setError(isError); };
@@ -160,13 +169,28 @@ export default function Home() {
     catch (e) { report((e as Error).message, true); }
   };
 
+  const signOut = () => { setSession(null); setToken(""); setPlan(null); setFarms([]); setOrders([]); setUsers([]); setAdminLots([]); report("Signed out."); };
+  const shown = lots.filter((lot) => lot.product.toLowerCase().includes(query.toLowerCase()));
+  const pickLot = (lot: Lot) => {
+    setLotId(lot.id); report(session?.role === "buyer" ? `Lot ${lot.id} selected. Enter a quantity under Create direct order.` : "Log in as a buyer to order a lot.");
+    document.getElementById("lotId")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return <div className="shell">
-    <header className="hero"><h1>Harvest Hub</h1><p>Supply matching and pooled transport for farmers, buyers and transporters.</p></header>
+    <header className="topbar">
+      <div className="topbar-row">
+        <a className="logo" href="/" aria-label="AgriLink home"><Logo /><span>AgriLink</span></a>
+      </div>
+      <div className="search"><input type="search" aria-label="Search produce" placeholder="Search produce, e.g. tomatoes" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
+    </header>
     <main className="content">
-      <div className="toolbar"><div>{session ? <span className="pill">{session.role} - {session.user_id}{reputation ? ` - reputation ${reputation.score}` : ""}</span> : <p>Choose a demo role to test the marketplace.</p>}</div><div className="actions"><button onClick={() => loadDemo("buyer")}>Buyer demo</button><button className="secondary" onClick={() => loadDemo("farmer")}>Farmer demo</button><button className="secondary" onClick={() => loadDemo("admin")}>Admin demo</button><button className="secondary" onClick={() => loadDemo("transporter")}>Transporter demo</button>{session && <button className="secondary" onClick={() => { setSession(null); setToken(""); setPlan(null); setFarms([]); setOrders([]); setUsers([]); setAdminLots([]); report("Signed out."); }}>Sign out</button>}</div></div>
       <div className={`status${error ? " error" : ""}`} role="status" aria-live="polite">{message}</div>
+      <div className="toolbar"><div>{session ? <span className="pill">{session.role} - {session.user_id}{reputation ? ` - reputation ${reputation.score}` : ""}</span> : <p>Choose a demo role to test the marketplace.</p>}</div><div className="actions"><button onClick={() => loadDemo("buyer")}>Buyer demo</button><button className="secondary" onClick={() => loadDemo("farmer")}>Farmer demo</button><button className="secondary" onClick={() => loadDemo("admin")}>Admin demo</button><button className="secondary" onClick={() => loadDemo("transporter")}>Transporter demo</button>{session && <button className="secondary" onClick={signOut}>Sign out</button>}</div></div>
+      <section className="produce">
+        <h2 className="section-title">Available produce</h2><p className="muted">Active farmer lots. Choose one to test a direct order.</p>
+        {shown.length ? <div className="product-grid">{shown.map((lot) => <article className="product-card" key={lot.id}><img src={productImage(lot.product)} alt={lot.product} loading="lazy" /><div className="product-info"><h3>{lot.product}</h3><p className="muted">{lot.quantity_kg} kg at {lot.price_per_kg.toFixed(2)}/kg</p><p className="muted lot-id">{lot.id}</p><button onClick={() => pickLot(lot)}>{lotId === lot.id ? "Selected" : "Use lot"}</button></div></article>)}</div> : <p className="empty">{lots.length ? "No produce matches your search." : "No active listings."}</p>}
+      </section>
       <div className="grid">
-        <section className="card wide"><h2>Available produce</h2><p className="muted">Active farmer lots. Choose one to test a direct order.</p>{lots.length ? lots.map((lot) => <div className="listing" key={lot.id}><div><strong>{lot.product}</strong><span className="muted">{lot.quantity_kg} kg at {lot.price_per_kg.toFixed(2)}/kg - {lot.id}</span></div><button onClick={() => setLotId(lot.id)}>Use lot</button></div>) : <p className="empty">No active listings.</p>}</section>
         {session?.role === "buyer" && <section className="card"><h2>Open buyer request</h2><p className="muted">Describe demand before it is matched to farmer supply.</p><form onSubmit={openRequest}><div className="form-grid"><div><label htmlFor="product">Product</label><input id="product" name="product" required defaultValue="Tomatoes" /></div><div><label htmlFor="quantity">Quantity (kg)</label><input id="quantity" name="quantity" type="number" min=".01" step=".01" required defaultValue="100" /></div><div><label htmlFor="max_price">Max price/kg</label><input id="max_price" name="max_price" type="number" min=".01" step=".01" defaultValue="0.80" /></div><div><label htmlFor="radius">Search radius (km)</label><input id="radius" name="radius" type="number" min="1" max="500" required defaultValue="50" /></div><div><label htmlFor="latitude">Pickup latitude</label><input id="latitude" name="latitude" type="number" step="any" required defaultValue="1.30" /></div><div><label htmlFor="longitude">Pickup longitude</label><input id="longitude" name="longitude" type="number" step="any" required defaultValue="36.82" /></div></div><div className="actions"><button>Open request</button></div></form><label htmlFor="requestId">Request ID</label><input id="requestId" value={requestId} onChange={(event) => setRequestId(event.target.value)} placeholder="req_..." /><div className="actions"><button className="secondary" type="button" onClick={findMatches} disabled={!requestId}>Find nearby supply</button></div></section>}
         {session?.role === "buyer" && <section className="card"><h2>Match plan</h2>{plan ? <><p className="pill">{plan.complete ? "Complete match" : "Partial match"}</p><p>{plan.allocated_quantity_kg} of {plan.requested_quantity_kg} kg allocated{plan.complete ? "" : ` - short by ${(plan.requested_quantity_kg - plan.allocated_quantity_kg).toFixed(2)} kg. Widen the radius or raise the max price.`}</p>{plan.allocations.map((allocation, index) => <div className="match" key={allocation.lot_id}><strong>#{index + 1} {allocation.quantity_kg} kg from {allocation.lot_id}</strong><div className="muted">Farmer {allocation.farmer_id} · {allocation.distance_km} km · {allocation.price_per_kg.toFixed(2)}/kg · cost {(allocation.quantity_kg * allocation.price_per_kg).toFixed(2)}<br />Score {allocation.score.toFixed(3)} = distance {allocation.distance_score.toFixed(2)} (50%) + price {allocation.price_score.toFixed(2)} (30%) + risk {allocation.fulfilment_risk.toFixed(2)} (20%). Lower is better.</div></div>)}<p><strong>Total: {plan.allocations.reduce((sum, a) => sum + a.quantity_kg * a.price_per_kg, 0).toFixed(2)}</strong></p>{plan.complete && <div className="actions"><button onClick={createGroupedOrder}>Create grouped order</button></div>}</> : <p className="empty">Open a request, then calculate its match plan.</p>}</section>}
         {session?.role === "buyer" && <section className="card"><h2>Create direct order</h2><p className="muted">This reserves quantity from one selected lot.</p><form onSubmit={createOrder}><label htmlFor="lotId">Lot ID</label><input id="lotId" value={lotId} onChange={(event) => setLotId(event.target.value)} required placeholder="lot_..." /><label htmlFor="orderQuantity">Quantity (kg)</label><input id="orderQuantity" value={orderQuantity} onChange={(event) => setOrderQuantity(event.target.value)} type="number" min=".01" step=".01" required /><div className="actions"><button>Create order</button></div></form></section>}
