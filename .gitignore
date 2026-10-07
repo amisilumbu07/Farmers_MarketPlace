@@ -11,3 +11,5 @@ graphify-out/
 blockchain/solana/target/
 blockchain/solana/.anchor/
 blockchain/solana/tests-svm/target/
+.vscode/
+*.tsbuildinfo

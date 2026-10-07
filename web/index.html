@@ -3,105 +3,397 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Harvest Hub</title>
+  <title>AgriLink</title>
   <style>
-    :root { --ink:#17221b; --muted:#66736a; --paper:#f8faf5; --card:#fff; --line:#dfe8df; --green:#19764a; --purple:#5733a5; --soft:#e9f4e9; --danger:#b42318; }
+    :root { --primary:#19764a; --primary-light:#e9f4e9; --text:#17221b; --muted:#66736a; --bg:#f8faf5; --card:#fff; --border:#dfe8df; --danger:#b42318; --success:#19764a; --orange:#ff9500; }
     * { box-sizing:border-box; }
-    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.5 Arial,sans-serif; }
-    header { background:var(--purple); color:#fff; padding:22px clamp(20px,5vw,72px); }
-    header h1 { margin:0; font-size:clamp(28px,4vw,46px); letter-spacing:-.04em; }
-    header p { margin:6px 0 0; color:#e7ddff; }
-    main { max-width:1180px; margin:0 auto; padding:28px 20px 64px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; align-items:start; }
-    .wide { grid-column:1/-1; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 8px 24px #1c3b2510; }
-    h2,h3 { margin:0 0 14px; letter-spacing:-.02em; }
-    h2 { font-size:23px; } h3 { font-size:18px; }
-    label { display:block; font-weight:700; margin:12px 0 5px; }
-    input,select,button { width:100%; min-height:44px; border-radius:9px; font:inherit; }
-    input,select { border:1px solid #b9c9ba; padding:9px 11px; background:#fff; color:var(--ink); }
-    button { border:0; padding:9px 14px; background:var(--green); color:#fff; font-weight:700; cursor:pointer; transition:transform .2s,filter .2s; }
-    button:hover { filter:brightness(1.08); transform:translateY(-1px); }
-    button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #a78bfa; outline-offset:2px; }
-    button.secondary { background:#edf3ee; color:var(--green); border:1px solid #bfd3c0; }
-    .actions { display:flex; gap:10px; margin-top:15px; } .actions button { flex:1; }
-    .muted { color:var(--muted); } .status { min-height:25px; margin:12px 0 0; color:var(--green); font-weight:700; }
-    .status.error { color:var(--danger); }
+    html,body { margin:0; padding:0; height:100%; }
+    body { color:var(--text); background:var(--bg); font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; display:flex; flex-direction:column; }
+    
+    /* Auth Section */
+    .auth-container { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; }
+    .auth-card { background:var(--card); border-radius:20px; padding:32px 24px; box-shadow:0 8px 32px rgba(0,0,0,0.08); max-width:100%; width:100%; max-width:400px; }
+    .auth-logo { display:flex; align-items:center; gap:12px; margin-bottom:28px; justify-content:center; }
+    .auth-logo svg { width:40px; height:40px; }
+    .auth-logo h1 { margin:0; font-size:28px; color:var(--text); }
+    .auth-form { display:flex; flex-direction:column; gap:16px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group label { font-weight:600; font-size:14px; color:var(--text); }
+    .form-group input,.form-group select { padding:12px 14px; border:1px solid var(--border); border-radius:12px; font:inherit; }
+    .btn { padding:12px 16px; border:none; border-radius:12px; font-weight:600; cursor:pointer; transition:all .2s; font-size:14px; }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-primary:hover { filter:brightness(1.1); transform:translateY(-2px); }
+    .btn-secondary { background:var(--primary-light); color:var(--primary); border:1px solid var(--primary); }
+    .btn-secondary:hover { background:var(--primary); color:#fff; }
+    .btn-demo { background:var(--primary); color:#fff; width:100%; }
+    
+    /* Main App Layout */
+    .app-container { display:flex; flex-direction:column; height:100vh; }
+    .app-header { background:#fff; padding:16px 20px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+    .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .logo { display:flex; align-items:center; gap:8px; }
+    .logo svg { width:32px; height:32px; }
+    .logo-text { font-size:20px; font-weight:700; color:var(--text); }
+    .header-actions { display:flex; gap:10px; }
+    .header-actions button { padding:8px 12px; font-size:12px; }
+    
+    /* Search Bar */
+    .search-bar { display:flex; gap:10px; }
+    .search-input { flex:1; display:flex; align-items:center; background:#f5f5f5; border-radius:24px; padding:0 16px; }
+    .search-input input { flex:1; border:none; background:none; padding:12px 0; outline:none; }
+    .search-btn { width:44px; height:44px; border-radius:50%; background:var(--primary); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold; }
+    .search-btn:hover { filter:brightness(1.1); }
+    
+    /* Tab Navigation */
+    .tabs { display:flex; gap:20px; border-bottom:2px solid var(--border); margin-top:12px; overflow-x:auto; }
+    .tab { padding:12px 0; border:none; background:none; cursor:pointer; font-weight:600; font-size:14px; color:var(--muted); position:relative; white-space:nowrap; }
+    .tab.active { color:var(--primary); }
+    .tab.active::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:var(--primary); }
+    
+    /* Main Content */
+    .app-main { flex:1; overflow-y:auto; padding-bottom:80px; }
+    .content-section { padding:20px; display:none; }
+    .content-section.active { display:block; }
+    
+    /* Product Grid */
+    .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; margin-top:16px; }
+    .product-card { background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .product-image { width:100%; aspect-ratio:1; background:#f0f0f0; object-fit:cover; }
+    .product-info { padding:12px; }
+    .product-name { font-weight:600; font-size:14px; color:var(--text); margin:0; }
+    .product-detail { font-size:12px; color:var(--muted); margin:4px 0; }
+    .product-price { font-size:16px; font-weight:700; color:var(--primary); }
+    .product-distance { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:4px; margin-top:6px; }
+    .product-card button { width:100%; padding:8px; margin-top:8px; background:var(--primary); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600; }
+    .product-card button:hover { filter:brightness(1.1); }
+    
+    /* Map Section */
+    .map-container { width:100%; height:300px; background:#f0f0f0; border-radius:12px; margin:20px 0; position:relative; overflow:hidden; }
+    .map { width:100%; height:100%; }
+    
+    /* Bottom Navigation */
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:8px 0; z-index:200; }
+    .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; padding:8px; cursor:pointer; text-decoration:none; border:none; background:none; color:var(--muted); font-weight:600; font-size:12px; transition:color .2s; }
+    .nav-item.active { color:var(--primary); }
+    .nav-item svg { width:24px; height:24px; }
+    
+    /* Modal */
+    .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:flex-end; }
+    .modal.active { display:flex; }
+    .modal-content { background:#fff; border-radius:20px 20px 0 0; padding:24px 20px; width:100%; max-width:100%; max-height:80vh; overflow-y:auto; }
+    .modal-header { font-size:18px; font-weight:700; margin-bottom:16px; }
+    .modal-close { position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; cursor:pointer; }
+    
+    /* Utilities */
+    .muted { color:var(--muted); }
     .hidden { display:none !important; }
-    .pill { display:inline-block; background:var(--soft); color:var(--green); border-radius:999px; padding:4px 9px; font-size:13px; font-weight:700; }
-    .lot { display:flex; justify-content:space-between; gap:16px; padding:14px 0; border-top:1px solid var(--line); }
-    .lot:first-child { border-top:0; padding-top:0; }
-    .lot strong { display:block; font-size:18px; }
-    .lot button { width:auto; white-space:nowrap; align-self:center; }
-    .topline { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
-    .topline button { width:auto; }
-    @media (max-width:600px) { .lot { display:block; } .lot button { width:100%; margin-top:10px; } .actions { flex-direction:column; } }
-    @media (prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto !important; transition:none !important; } }
+    .status { min-height:25px; padding:12px; border-radius:8px; margin:12px 0; }
+    .status.success { background:#e9f4e9; color:var(--success); }
+    .status.error { background:#ffe9e9; color:var(--danger); }
+    .pill { display:inline-block; background:var(--primary-light); color:var(--primary); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:600; }
+    
+    /* Desktop Layout */
+    @media (min-width:768px) {
+      .auth-card { padding:40px; }
+      .app-header { padding:20px 28px; }
+      .search-bar { gap:16px; }
+      .search-input { max-width:400px; }
+      .tabs { gap:32px; }
+      .content-section { padding:28px 40px; }
+      .product-grid { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); }
+      .map-container { height:400px; }
+      .bottom-nav { display:none; }
+      .app-main { padding-bottom:0; }
+      
+      .desktop-nav { display:flex !important; gap:20px; }
+    }
+    
+    @media (max-width:767px) {
+      .desktop-only { display:none; }
+      .auth-card { border-radius:12px; }
+      .header-actions { display:none; }
+      .product-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    
+    @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Harvest Hub</h1>
-    <p>Test the farmer-to-buyer marketplace flow.</p>
-  </header>
-  <main>
-    <div id="globalStatus" class="status" role="status" aria-live="polite"></div>
-    <section id="authCard" class="card">
-      <h2>Get started</h2>
-      <p class="muted">Create a test account or sign in to continue.</p>
-      <button id="demoButton" class="secondary" type="button">Load demo data</button>
-      <p class="muted">This resets the in-memory store with sample farmers, farms, listings, and an accepted order.</p>
-      <div class="grid">
-        <form id="registerForm">
-          <h3>Register</h3>
-          <label for="registerEmail">Email</label><input id="registerEmail" name="email" type="email" required>
-          <label for="registerPassword">Password</label><input id="registerPassword" name="password" type="password" minlength="8" required>
-          <label for="registerRole">Role</label><select id="registerRole" name="role"><option value="buyer">Buyer</option><option value="farmer">Farmer</option></select>
-          <div class="actions"><button>Create account</button></div>
-        </form>
-        <form id="loginForm">
-          <h3>Sign in</h3>
-          <label for="loginEmail">Email</label><input id="loginEmail" name="email" type="email" required>
-          <label for="loginPassword">Password</label><input id="loginPassword" name="password" type="password" required>
-          <div class="actions"><button>Sign in</button></div>
-        </form>
+  <!-- Auth View -->
+  <div id="authView" class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" fill="#19764a" opacity="0.1"/>
+          <path d="M20 10L24 15L22 15L22 22L18 22L18 15L16 15Z" fill="#19764a"/>
+          <path d="M26 18C27.1 18 28 18.9 28 20V28C28 29.1 27.1 30 26 30H14C12.9 30 12 29.1 12 28V20C12 18.9 12.9 18 14 18" fill="#ff9500" opacity="0.7"/>
+        </svg>
+        <h1>AgriLink</h1>
       </div>
-    </section>
-
-    <section id="app" class="hidden">
-      <div class="topline"><div><span class="pill" id="sessionLabel"></span><p class="muted">The API store resets when the server restarts.</p></div><button id="logout" class="secondary">Sign out</button></div>
-      <div class="grid">
-        <div id="farmerTools" class="card hidden">
-          <h2>Farmer tools</h2>
-          <form id="profileForm"><h3>Farmer profile</h3><label for="displayName">Display name</label><input id="displayName" name="display_name" required><label for="phone">Phone</label><input id="phone" name="phone"><button>Create profile</button></form>
-          <form id="farmForm"><h3>Farm</h3><label for="farmName">Farm name</label><input id="farmName" name="name" required><label for="latitude">Latitude</label><input id="latitude" name="latitude" type="number" step="any" required><label for="longitude">Longitude</label><input id="longitude" name="longitude" type="number" step="any" required><button>Create farm</button></form>
-          <form id="lotForm"><h3>Produce listing</h3><label for="farmId">Farm ID</label><input id="farmId" required><label for="product">Product</label><input id="product" placeholder="Tomatoes" required><label for="quantity">Quantity (kg)</label><input id="quantity" type="number" min="0.01" step="0.01" required><label for="price">Price per kg</label><input id="price" type="number" min="0.01" step="0.01" required><button>Create listing</button></form>
-        </div>
-        <div class="card">
-          <h2>Browse produce</h2>
-          <form id="filterForm" class="actions"><input id="filterProduct" placeholder="Product"><input id="filterPrice" type="number" step="any" placeholder="Max price"><button>Refresh</button></form>
-          <div id="lots" class="muted">Loading listings…</div>
-        </div>
-        <div id="orderTools" class="card">
-          <h2>Order tester</h2>
-          <div id="buyerRequestTools">
-            <h3>Open a buyer request</h3>
-            <p class="muted">This records demand before it is matched to a farmer lot.</p>
-            <form id="requestForm"><label for="requestProduct">Product wanted</label><input id="requestProduct" required><label for="requestQuantity">Quantity (kg)</label><input id="requestQuantity" type="number" min="0.01" step="0.01" required><label for="requestPrice">Maximum price per kg</label><input id="requestPrice" type="number" min="0.01" step="0.01"><label for="requestLatitude">Pickup latitude</label><input id="requestLatitude" type="number" step="any" required><label for="requestLongitude">Pickup longitude</label><input id="requestLongitude" type="number" step="any" required><button>Open request</button></form>
-            <label for="requestId">Request ID</label><input id="requestId" placeholder="req_…"><button id="findMatches" class="secondary" type="button">Find nearby supply</button><div id="matchStatus" class="status" role="status" aria-live="polite"></div>
+      <div id="globalStatus" class="status" role="status" aria-live="polite"></div>
+      
+      <div id="loginView" class="auth-form">
+        <h2 style="margin:0 0 24px; text-align:center;">Welcome to AgriLink</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" name="email" type="email" placeholder="your@email.com" required>
           </div>
-          <p class="muted">Use an order ID here to test farmer acceptance and buyer completion.</p>
-          <form id="orderForm"><label for="orderLot">Lot ID</label><input id="orderLot" required><label for="orderQuantity">Quantity (kg)</label><input id="orderQuantity" type="number" min="0.01" step="0.01" required><button>Create order</button></form>
-          <label for="orderId">Order ID</label><input id="orderId" placeholder="ord_…"><div class="actions"><button id="acceptOrder" class="secondary" type="button">Accept order</button><button id="completeOrder" class="secondary" type="button">Complete order</button></div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" name="password" type="password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Sign in</button>
+        </form>
+        <button id="toggleToRegister" class="btn btn-secondary" style="width:100%; margin-top:12px;">Create account</button>
+        <button id="demoButton" class="btn btn-demo" style="margin-top:16px;">Load demo data</button>
+      </div>
+      
+      <div id="registerView" class="auth-form hidden">
+        <h2 style="margin:0 0 24px; text-align:center;">Create your account</h2>
+        <form id="registerForm">
+          <div class="form-group">
+            <label for="registerEmail">Email</label>
+            <input id="registerEmail" name="email" type="email" placeholder="your@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="registerPassword">Password</label>
+            <input id="registerPassword" name="password" type="password" placeholder="••••••••" minlength="8" required>
+          </div>
+          <div class="form-group">
+            <label for="registerRole">I am a</label>
+            <select id="registerRole" name="role">
+              <option value="buyer">Buyer</option>
+              <option value="farmer">Farmer</option>
+              <option value="transporter">Transporter</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Create account</button>
+        </form>
+        <button id="toggleToLogin" class="btn btn-secondary" style="width:100%; margin-top:12px;">Back to sign in</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App View -->
+  <div id="appView" class="app-container hidden">
+    <!-- Header -->
+    <div class="app-header">
+      <div class="header-top">
+        <div class="logo">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;">
+            <circle cx="20" cy="20" r="18" fill="#19764a" opacity="0.1"/>
+            <path d="M20 10L24 15L22 15L22 22L18 22L18 15L16 15Z" fill="#19764a"/>
+            <path d="M26 18C27.1 18 28 18.9 28 20V28C28 29.1 27.1 30 26 30H14C12.9 30 12 29.1 12 28V20C12 18.9 12.9 18 14 18" fill="#ff9500" opacity="0.7"/>
+          </svg>
+          <span class="logo-text">AgriLink</span>
+        </div>
+        <div class="header-actions">
+          <span class="pill" id="sessionLabel"></span>
+          <button id="logout" class="btn btn-secondary" style="width:auto;padding:8px 16px;">Sign out</button>
+        </div>
+      </div>
+      
+      <div class="search-bar">
+        <div class="search-input">
+          <input type="text" id="searchInput" placeholder="Search produce, location...">
+        </div>
+        <button class="search-btn">🔍</button>
+      </div>
+      
+      <div class="tabs">
+        <button class="tab active" data-tab="home">For Buyers</button>
+        <button class="tab" data-tab="farmers">For Farmers</button>
+        <button class="tab" data-tab="orders">Orders</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="app-main">
+      <!-- Home Tab -->
+      <section id="home-content" class="content-section active">
+        <h2>Fresh Produce Nearby</h2>
+        <div class="product-grid" id="productsGrid">
+          <div class="muted">Loading products...</div>
+        </div>
+        
+        <h2 style="margin-top:32px;">Nearby Supply</h2>
+        <div class="map-container" id="mapContainer">
+          <div class="map" id="map" style="width:100%;height:100%;background:linear-gradient(135deg,#e8f5e9,#fff);display:flex;align-items:center;justify-content:center;color:#999;">Map loading...</div>
+        </div>
+      </section>
+
+      <!-- Farmers Tab -->
+      <section id="farmers-content" class="content-section">
+        <div id="farmerTools" class="hidden">
+          <h2>Farmer Dashboard</h2>
+          
+          <div style="background:var(--card);padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid var(--border);">
+            <h3>Your Profile</h3>
+            <form id="profileForm" class="auth-form">
+              <div class="form-group">
+                <label for="displayName">Display name</label>
+                <input id="displayName" name="display_name" required>
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone</label>
+                <input id="phone" name="phone">
+              </div>
+              <button type="submit" class="btn btn-primary">Save Profile</button>
+            </form>
+          </div>
+
+          <div style="background:var(--card);padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid var(--border);">
+            <h3>Create Farm</h3>
+            <form id="farmForm" class="auth-form">
+              <div class="form-group">
+                <label for="farmName">Farm name</label>
+                <input id="farmName" name="name" required>
+              </div>
+              <div class="form-group">
+                <label for="latitude">Latitude</label>
+                <input id="latitude" name="latitude" type="number" step="any" required>
+              </div>
+              <div class="form-group">
+                <label for="longitude">Longitude</label>
+                <input id="longitude" name="longitude" type="number" step="any" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Create Farm</button>
+            </form>
+          </div>
+
+          <div style="background:var(--card);padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid var(--border);">
+            <h3>Add Produce Listing</h3>
+            <form id="lotForm" class="auth-form">
+              <div class="form-group">
+                <label for="farmId">Farm ID</label>
+                <input id="farmId" required>
+              </div>
+              <div class="form-group">
+                <label for="product">Product</label>
+                <input id="product" placeholder="Tomatoes, Lettuce..." required>
+              </div>
+              <div class="form-group">
+                <label for="quantity">Quantity (kg)</label>
+                <input id="quantity" type="number" min="0.01" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label for="price">Price per kg ($)</label>
+                <input id="price" type="number" min="0.01" step="0.01" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Add Listing</button>
+            </form>
+          </div>
+        </div>
+        
+        <div id="buyerRequestTools" class="hidden">
+          <h2>Open a Buyer Request</h2>
+          <p class="muted">Tell us what produce you need and we'll find nearby farms.</p>
+          
+          <div style="background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);">
+            <form id="requestForm" class="auth-form">
+              <div class="form-group">
+                <label for="requestProduct">What do you need?</label>
+                <input id="requestProduct" required>
+              </div>
+              <div class="form-group">
+                <label for="requestQuantity">Quantity (kg)</label>
+                <input id="requestQuantity" type="number" min="0.01" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label for="requestPrice">Maximum price per kg</label>
+                <input id="requestPrice" type="number" min="0.01" step="0.01">
+              </div>
+              <div class="form-group">
+                <label for="requestLatitude">Your latitude</label>
+                <input id="requestLatitude" type="number" step="any" required>
+              </div>
+              <div class="form-group">
+                <label for="requestLongitude">Your longitude</label>
+                <input id="requestLongitude" type="number" step="any" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Open Request</button>
+            </form>
+          </div>
+
+          <div style="background:var(--card);padding:20px;border-radius:12px;margin-top:20px;border:1px solid var(--border);">
+            <h3>Find Matches</h3>
+            <div class="form-group">
+              <label for="requestId">Request ID</label>
+              <input id="requestId" placeholder="req_...">
+            </div>
+            <button id="findMatches" class="btn btn-primary">Find Nearby Supply</button>
+            <div id="matchStatus" class="status" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Orders Tab -->
+      <section id="orders-content" class="content-section">
+        <h2>Manage Orders</h2>
+        
+        <div style="background:var(--card);padding:20px;border-radius:12px;border:1px solid var(--border);">
+          <h3>Create Order</h3>
+          <form id="orderForm" class="auth-form">
+            <div class="form-group">
+              <label for="orderLot">Lot ID</label>
+              <input id="orderLot" required>
+            </div>
+            <div class="form-group">
+              <label for="orderQuantity">Quantity (kg)</label>
+              <input id="orderQuantity" type="number" min="0.01" step="0.01" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Order</button>
+          </form>
+        </div>
+
+        <div style="background:var(--card);padding:20px;border-radius:12px;margin-top:20px;border:1px solid var(--border);">
+          <h3>Manage Order</h3>
+          <div class="form-group">
+            <label for="orderId">Order ID</label>
+            <input id="orderId" placeholder="ord_...">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button id="acceptOrder" class="btn btn-secondary">Accept</button>
+            <button id="completeOrder" class="btn btn-secondary">Complete</button>
+          </div>
           <div id="orderStatus" class="status" role="status" aria-live="polite"></div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </div>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="bottom-nav">
+      <button class="nav-item active" data-tab="home">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        Home
+      </button>
+      <button class="nav-item" data-tab="orders">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.3-1.54c-.3-.36-.77-.36-1.07 0-.3.36-.3.92 0 1.28l1.84 2.18c.3.36.77.36 1.07 0l3.29-4.03c.3-.36.3-.92 0-1.28-.3-.37-.77-.37-1.08 0z"/></svg>
+        Orders
+      </button>
+      <button class="nav-item" data-tab="farmers">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Farmers
+      </button>
+      <button class="nav-item" style="display:none;">
+        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        Menu
+      </button>
+    </div>
+  </div>
   <script>
     const $ = (id) => document.getElementById(id);
     let token = '';
-    const setStatus = (message, error = false) => { $('globalStatus').textContent = message; $('globalStatus').className = `status${error ? ' error' : ''}`; };
+    
+    const setStatus = (elemId, message, error = false) => {
+      const elem = $(elemId);
+      if (!elem) return;
+      elem.textContent = message;
+      elem.className = `status${error ? ' error' : ' success'}`;
+      setTimeout(() => elem.textContent = '', 4000);
+    };
+
     const request = async (path, options = {}) => {
       const headers = { 'Content-Type':'application/json', ...(options.headers || {}) };
       if (token) headers.Authorization = `Bearer ${token}`;
@@ -110,26 +402,230 @@
       if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
       return data;
     };
+
     const showApp = (session) => {
-      token = session.token; $('authCard').classList.add('hidden'); $('app').classList.remove('hidden'); $('sessionLabel').textContent = `${session.role} · ${session.user_id}`; if (session.order_id) $('orderId').value = session.order_id; if (session.request_id) $('requestId').value = session.request_id;
-      $('farmerTools').classList.toggle('hidden', session.role !== 'farmer'); loadLots();
+      token = session.token;
+      $('authView').classList.add('hidden');
+      $('appView').classList.remove('hidden');
+      $('sessionLabel').textContent = `${session.role} · ${session.user_id}`;
+      if (session.order_id) $('orderId').value = session.order_id;
+      if (session.request_id) $('requestId').value = session.request_id;
+      
+      $('farmerTools').classList.toggle('hidden', session.role !== 'farmer');
       $('buyerRequestTools').classList.toggle('hidden', session.role !== 'buyer');
+      
+      loadProducts();
     };
-    const formData = (form) => Object.fromEntries(new FormData(form));
-    $('registerForm').addEventListener('submit', async (event) => { event.preventDefault(); try { showApp(await request('/auth/register', { method:'POST', body:JSON.stringify(formData(event.target)) })); setStatus('Account created.'); } catch (error) { setStatus(error.message, true); } });
-    $('loginForm').addEventListener('submit', async (event) => { event.preventDefault(); try { showApp(await request('/auth/login', { method:'POST', body:JSON.stringify(formData(event.target)) })); setStatus('Signed in.'); } catch (error) { setStatus(error.message, true); } });
-    $('logout').addEventListener('click', () => { token = ''; $('app').classList.add('hidden'); $('authCard').classList.remove('hidden'); setStatus('Signed out.'); });
-    $('demoButton').addEventListener('click', async () => { try { showApp(await request('/demo/seed', { method:'POST' })); setStatus('Demo data loaded. You are signed in as the demo buyer.'); } catch (error) { setStatus(error.message, true); } });
-    $('profileForm').addEventListener('submit', async (event) => { event.preventDefault(); try { await request('/farmer-profile', { method:'POST', body:JSON.stringify(formData(event.target)) }); setStatus('Farmer profile created.'); } catch (error) { setStatus(error.message, true); } });
-    $('farmForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const farm = await request('/farms', { method:'POST', body:JSON.stringify(formData(event.target)) }); $('farmId').value = farm.id; setStatus(`Farm created: ${farm.id}`); } catch (error) { setStatus(error.message, true); } });
-    $('lotForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const lot = await request('/lots', { method:'POST', body:JSON.stringify({ farm_id:$('farmId').value, product:$('product').value, quantity_kg:Number($('quantity').value), price_per_kg:Number($('price').value) }) }); setStatus(`Listing created: ${lot.id}`); loadLots(); } catch (error) { setStatus(error.message, true); } });
-    $('requestForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const requestData = await request('/buyer-requests', { method:'POST', body:JSON.stringify({ product:$('requestProduct').value, quantity_kg:Number($('requestQuantity').value), max_price_per_kg:$('requestPrice').value ? Number($('requestPrice').value) : null, latitude:Number($('requestLatitude').value), longitude:Number($('requestLongitude').value) }) }); $('requestId').value = requestData.id; setStatus(`Buyer request opened: ${requestData.id}`); } catch (error) { setStatus(error.message, true); } });
-    $('findMatches').addEventListener('click', async () => { try { const plan = await request(`/buyer-requests/${$('requestId').value}/matches`); const details = plan.allocations.map((allocation) => `${allocation.quantity_kg} kg from ${allocation.lot_id} (${allocation.distance_km} km)`).join(' + '); $('matchStatus').textContent = `${plan.complete ? 'Complete' : 'Partial'} match: ${details || 'no eligible lots'}`; $('matchStatus').classList.remove('error'); } catch (error) { $('matchStatus').textContent = error.message; $('matchStatus').classList.add('error'); } });
-    $('filterForm').addEventListener('submit', (event) => { event.preventDefault(); loadLots(); });
-    async function loadLots() { try { const params = new URLSearchParams(); if ($('filterProduct').value) params.set('product', $('filterProduct').value); if ($('filterPrice').value) params.set('max_price', $('filterPrice').value); const lots = await request(`/products?${params}`); $('lots').innerHTML = lots.length ? lots.map((lot) => `<div class="lot"><div><strong>${lot.product}</strong><span class="muted">${lot.quantity_kg} kg · ${lot.price_per_kg}/kg · ${lot.id}</span></div><button type="button" data-lot="${lot.id}">Use lot</button></div>`).join('') : '<p class="muted">No active listings yet.</p>'; document.querySelectorAll('[data-lot]').forEach((button) => button.addEventListener('click', () => { $('orderLot').value = button.dataset.lot; $('orderLot').focus(); })); } catch (error) { $('lots').textContent = error.message; } }
-    $('orderForm').addEventListener('submit', async (event) => { event.preventDefault(); try { const order = await request('/orders', { method:'POST', body:JSON.stringify({ lot_id:$('orderLot').value, quantity_kg:Number($('orderQuantity').value) }) }); $('orderId').value = order.id; $('orderStatus').textContent = `${order.id}: ${order.status}`; } catch (error) { $('orderStatus').textContent = error.message; $('orderStatus').classList.add('error'); } });
-    async function changeOrder(action) { try { const order = await request(`/orders/${$('orderId').value}/${action}`, { method:'POST' }); $('orderStatus').textContent = `${order.id}: ${order.status}`; $('orderStatus').classList.remove('error'); } catch (error) { $('orderStatus').textContent = error.message; $('orderStatus').classList.add('error'); } }
-    $('acceptOrder').addEventListener('click', () => changeOrder('accept')); $('completeOrder').addEventListener('click', () => changeOrder('complete'));
+
+    const switchTab = (tabName) => {
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab, .nav-item').forEach(t => t.classList.remove('active'));
+      $(`${tabName}-content`).classList.add('active');
+      document.querySelectorAll(`[data-tab="${tabName}"]`).forEach(t => t.classList.add('active'));
+    };
+
+    // Auth event listeners
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+      btn.addEventListener('click', (e) => switchTab(e.target.closest('[data-tab]').dataset.tab));
+    });
+
+    $('toggleToRegister').addEventListener('click', () => {
+      $('loginView').classList.add('hidden');
+      $('registerView').classList.remove('hidden');
+    });
+
+    $('toggleToLogin').addEventListener('click', () => {
+      $('registerView').classList.add('hidden');
+      $('loginView').classList.remove('hidden');
+    });
+
+    $('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = Object.fromEntries(new FormData(e.target));
+        showApp(await request('/auth/register', { method:'POST', body:JSON.stringify(data) }));
+        setStatus('globalStatus', 'Account created!');
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    $('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = Object.fromEntries(new FormData(e.target));
+        showApp(await request('/auth/login', { method:'POST', body:JSON.stringify(data) }));
+        setStatus('globalStatus', 'Signed in!');
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    $('logout').addEventListener('click', () => {
+      token = '';
+      $('appView').classList.add('hidden');
+      $('authView').classList.remove('hidden');
+      setStatus('globalStatus', 'Signed out');
+    });
+
+    $('demoButton').addEventListener('click', async () => {
+      try {
+        showApp(await request('/demo/seed', { method:'POST' }));
+        setStatus('globalStatus', 'Demo loaded!');
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    // Farmer forms
+    $('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = Object.fromEntries(new FormData(e.target));
+        await request('/farmer-profile', { method:'POST', body:JSON.stringify(data) });
+        setStatus('globalStatus', 'Profile saved!');
+        e.target.reset();
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    $('farmForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = Object.fromEntries(new FormData(e.target));
+        const farm = await request('/farms', { method:'POST', body:JSON.stringify(data) });
+        $('farmId').value = farm.id;
+        setStatus('globalStatus', `Farm created: ${farm.id}`);
+        e.target.reset();
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    $('lotForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const formData = Object.fromEntries(new FormData(e.target));
+        const lot = await request('/lots', { 
+          method:'POST', 
+          body:JSON.stringify({ 
+            farm_id:$('farmId').value, 
+            product:$('product').value, 
+            quantity_kg:Number(formData.quantity), 
+            price_per_kg:Number(formData.price) 
+          }) 
+        });
+        setStatus('globalStatus', `Listing created: ${lot.id}`);
+        loadProducts();
+        e.target.reset();
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    // Load products
+    async function loadProducts() {
+      try {
+        const products = await request('/products');
+        const grid = $('productsGrid');
+        grid.innerHTML = products.length ? products.map(p => `
+          <div class="product-card">
+            <div class="product-image" style="background:linear-gradient(135deg,#fff,#f5f5f5);display:flex;align-items:center;justify-content:center;color:#999;">📦</div>
+            <div class="product-info">
+              <p class="product-name">${p.product}</p>
+              <p class="product-detail">${p.quantity_kg} kg available</p>
+              <p class="product-price">$${p.price_per_kg}/kg</p>
+              <div class="product-distance">📍 ${p.distance_km || '?'} km away</div>
+              <button type="button" data-lot="${p.id}">Order</button>
+            </div>
+          </div>
+        `).join('') : '<div class="muted">No products available</div>';
+        
+        document.querySelectorAll('[data-lot]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            $('orderLot').value = btn.dataset.lot;
+            switchTab('orders');
+          });
+        });
+      } catch (error) {
+        $('productsGrid').textContent = error.message;
+      }
+    }
+
+    // Buyer requests
+    $('requestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = Object.fromEntries(new FormData(e.target));
+        const req = await request('/buyer-requests', { 
+          method:'POST', 
+          body:JSON.stringify({ 
+            product:data.requestProduct,
+            quantity_kg:Number(data.requestQuantity),
+            max_price_per_kg:data.requestPrice ? Number(data.requestPrice) : null,
+            latitude:Number(data.requestLatitude),
+            longitude:Number(data.requestLongitude)
+          }) 
+        });
+        $('requestId').value = req.id;
+        setStatus('globalStatus', `Request opened: ${req.id}`);
+        e.target.reset();
+      } catch (error) {
+        setStatus('globalStatus', error.message, true);
+      }
+    });
+
+    $('findMatches').addEventListener('click', async () => {
+      try {
+        const plan = await request(`/buyer-requests/${$('requestId').value}/matches`);
+        const details = plan.allocations.map(a => `${a.quantity_kg}kg from lot ${a.lot_id}`).join(', ') || 'no matches';
+        setStatus('matchStatus', `${plan.complete ? '✓ Complete' : '⚠ Partial'} match: ${details}`);
+      } catch (error) {
+        setStatus('matchStatus', error.message, true);
+      }
+    });
+
+    // Orders
+    $('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const data = Object.fromEntries(new FormData(e.target));
+        const order = await request('/orders', { 
+          method:'POST', 
+          body:JSON.stringify({ 
+            lot_id:$('orderLot').value, 
+            quantity_kg:Number(data.orderQuantity) 
+          }) 
+        });
+        $('orderId').value = order.id;
+        setStatus('orderStatus', `Order created: ${order.status}`);
+        e.target.reset();
+      } catch (error) {
+        setStatus('orderStatus', error.message, true);
+      }
+    });
+
+    async function changeOrder(action) {
+      try {
+        const order = await request(`/orders/${$('orderId').value}/${action}`, { method:'POST' });
+        setStatus('orderStatus', `Order ${order.status}`);
+      } catch (error) {
+        setStatus('orderStatus', error.message, true);
+      }
+    }
+
+    $('acceptOrder').addEventListener('click', () => changeOrder('accept'));
+    $('completeOrder').addEventListener('click', () => changeOrder('complete'));
+
+    // Search
+    $('searchInput').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.product-card').forEach(card => {
+        const name = card.querySelector('.product-name').textContent.toLowerCase();
+        card.style.display = name.includes(term) ? '' : 'none';
+      });
+    });
   </script>
 </body>
 </html>
