@@ -111,3 +111,49 @@ a.role-card:hover, a.role-card.chosen { border-color: var(--green); }
 .foot { margin-top: 24px; text-align: center; }
 @media (min-width: 768px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } .hero { padding-block: 72px 56px; } }
 @media (min-width: 1100px) { .feature-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* landing, photo style */
+.accent { color: #2e9e5b; }
+.logo .accent { color: #2e9e5b; }
+.built-on { display: none; color: var(--muted); font-size: 14px; }
+.hero2 { display: grid; gap: 20px; padding: 24px clamp(16px, 4vw, 40px) 0; background: linear-gradient(180deg, #e3efd9 0%, #f4f9ee 55%, var(--paper) 100%); overflow: hidden; }
+.hero2-text { max-width: 640px; }
+.tagline { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+.hero2 h1 { margin: 0 0 12px; font-size: clamp(36px, 9vw, 68px); line-height: 1.04; letter-spacing: -.03em; color: #0e2417; }
+.hero2 .lead { margin: 0 0 20px; color: #4a5a4f; font-size: clamp(17px, 2.6vw, 21px); max-width: 34ch; }
+.benefits { list-style: none; margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 12px; }
+.benefits li { display: flex; flex-direction: column; gap: 8px; font-weight: 600; line-height: 1.25; }
+.benefit-icon { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; color: #fff; }
+.benefit-icon.green { background: #2e9e5b; } .benefit-icon.orange { background: #f08a24; } .benefit-icon.blue { background: #2f6fe4; } .benefit-icon.purple { background: #7c4ddb; }
+a.button.cta { justify-content: space-between; gap: 16px; padding: 14px 20px; font-size: 18px; line-height: 1.25; text-align: left; border-radius: 14px; background: #0f7a45; box-shadow: 0 10px 24px #0f7a4533; width: 100%; max-width: 420px; }
+.demo-link { margin: 12px 0 0; }
+.demo-link a { color: var(--green); font-weight: 600; }
+.hero2-photo { align-self: end; justify-self: center; width: min(100%, 300px); }
+.hero2-photo img { display: block; width: 100%; aspect-ratio: 4 / 5; height: auto; object-fit: cover; object-position: 50% 45%; border-radius: 24px 24px 0 0; }
+.claims { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 16px clamp(16px, 4vw, 40px); background: #0e3b24; color: #fff; text-align: center; font-weight: 600; }
+.claims span { padding: 4px 0; }
+.tiles { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.tile { position: relative; display: block; overflow: hidden; border-radius: 20px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 8px 24px #1c3b2514; color: inherit; text-decoration: none; transition: transform .2s; }
+.tile:hover { transform: translateY(-2px); }
+.tile img { display: block; width: 100%; height: 190px; object-fit: cover; }
+.chip { position: absolute; top: 14px; left: 14px; padding: 8px 14px; border-radius: 12px; color: #fff; font-weight: 700; box-shadow: 0 4px 12px #0003; }
+.chip.green { background: #2e9e5b; } .chip.orange { background: #f08a24; } .chip.blue { background: #2f6fe4; }
+.tile-body { padding: 14px 16px 16px; }
+.tile-body p { margin: 0 0 10px; color: var(--muted); }
+.admin-link { margin: 14px 0 28px; }
+.admin-link a, .foot a { color: var(--green); font-weight: 600; }
+a.login-card { display: flex; align-items: center; gap: 16px; }
+.login-card img, .avatar-admin { flex: none; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+.avatar-admin { display: grid; place-items: center; background: #2f6fe4; color: #fff; font-weight: 700; font-size: 24px; }
+@media (min-width: 768px) {
+  .built-on { display: inline; }
+  .benefits { grid-template-columns: repeat(4, 1fr); }
+  .claims { grid-template-columns: repeat(3, 1fr); }
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+  .tile img { height: 220px; }
+}
+@media (min-width: 900px) {
+  .hero2 { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); align-items: end; padding-top: 48px; }
+  .hero2-photo { width: 300px; justify-self: end; margin-right: clamp(0px, 4vw, 60px); }
+  .hero2-photo img { aspect-ratio: 1 / 1.9; object-position: 50% 40%; }
+}

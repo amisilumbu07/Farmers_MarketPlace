@@ -1,4 +1,26 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+
+const icon = (children: ReactNode) => <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>;
+const ICONS = {
+  leaf: icon(<><path d="M5 19c0-8 5-13 14-14 0 9-5 14-14 14z" /><path d="M5 19c3-4 6-7 10-9" /></>),
+  truck: icon(<><path d="M2 6h11v10H2zM13 10h4l3 3v3h-7" /><circle cx="7" cy="17.5" r="1.8" /><circle cx="16.5" cy="17.5" r="1.8" /></>),
+  shield: icon(<><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" /><path d="M9 12l2 2 4-4" /></>),
+  globe: icon(<><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></>),
+};
+
+const BENEFITS = [
+  ["leaf", "green", "Better income for farmers"],
+  ["truck", "orange", "Lower transport costs"],
+  ["shield", "blue", "Trusted and verified supply"],
+  ["globe", "purple", "Fresh, quality food at scale"],
+] as const;
+
+const TILES = [
+  ["farmer", "Farmers", "green", "/img/role-farmers.jpg", "50% 20%", "Farmer harvesting vegetables in a field", "See incoming orders, accept them and keep your farm up to date."],
+  ["transporter", "Transporters", "orange", "/img/role-transporters.jpg", "50% 50%", "Truck loaded with crates of fresh produce", "Find pooled loads on your route and confirm a trip."],
+  ["buyer", "Buyers", "blue", "/img/role-buyers.jpg", "50% 8%", "Chef plating a fresh salad", "Restaurants, hotels and retailers: post demand and follow delivery."],
+] as const;
 
 const FEATURES = [
   ["Fresh from the farm", "Farmers list what they have and when it is ready. Buyers see real stock, price per kilo and distance."],
@@ -7,36 +29,38 @@ const FEATURES = [
   ["A record you can trust", "Each pickup and delivery is signed and kept in order, and disputes are resolved with that evidence. The record is anchored on Solana."],
 ];
 
-const ROLES = [
-  ["buyer", "Buyer", "Restaurants, shops and institutions: post demand, get matched, follow delivery."],
-  ["farmer", "Farmer", "See incoming orders, accept them and keep your farm location up to date."],
-  ["transporter", "Transporter", "Find pooled loads on your route and confirm a trip."],
-  ["admin", "Admin", "Moderate users and listings, and resolve disputes."],
-];
+const Mark = () => <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true"><path d="M6 22c0-9 6-15 15-15 0 9-6 16-15 15z" fill="#2e9e5b" /><path d="M13 35c-1-9 4-16 13-17 1 9-4 16-13 17z" fill="#19764a" /><path d="M23 5c6 0 11 4 11 10-6 0-11-4-11-10z" fill="#f08a24" /></svg>;
 
 export default function Landing() {
   return <div className="shell">
     <header className="topbar">
       <div className="topbar-row">
-        <Link className="logo" href="/" aria-label="AgriLink home"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#19764a" opacity=".12" /><path d="M20 10l4 5h-2v7h-4v-7h-2z" fill="#19764a" /></svg><span>AgriLink</span></Link>
-        <Link className="button" href="/login">Sign in</Link>
+        <Link className="logo" href="/" aria-label="AgriLink home"><Mark /><span>Agri<span className="accent">Link</span></span></Link>
+        <div className="topbar-actions"><span className="built-on">Built on Solana</span><Link className="button" href="/login">Sign in</Link></div>
       </div>
     </header>
     <main>
-      <section className="hero">
-        <p className="pill">Farm to buyer, with shared transport</p>
-        <h1>Fresh produce from local farmers, delivered together.</h1>
-        <p className="lead">AgriLink joins many small farms into one reliable supplier. Buyers get steady quantities, farmers reach customers they could not reach alone, and trucks travel fuller.</p>
-        <div className="actions hero-actions">
-          <Link className="button" href="/login">Sign in</Link>
-          <Link className="button secondary" href="/tests?role=buyer">Browse the demo market</Link>
+      <section className="hero2">
+        <div className="hero2-text">
+          <p className="tagline">Real Farmers · Real Food · Trusted Supply · A More Resilient Future</p>
+          <h1>From Local Farms <br />to <span className="accent">Global Tables</span></h1>
+          <p className="lead">Connecting farmers, transporters and professional buyers through a transparent, efficient and trusted marketplace.</p>
+          <ul className="benefits">{BENEFITS.map(([name, tone, label]) => <li key={name}><span className={`benefit-icon ${tone}`}>{ICONS[name]}</span>{label}</li>)}</ul>
+          <Link className="button cta" href="/login"><span>One Reliable Supplier<br />From Many Small Farms</span><span aria-hidden="true">→</span></Link>
+          <p className="demo-link"><Link href="/tests?role=buyer">Or browse the demo market</Link></p>
         </div>
+        <div className="hero2-photo"><img src="/img/hero-farmer.jpg" width="230" height="641" alt="Smiling farmer holding a crate of tomatoes and lettuce" fetchPriority="high" /></div>
       </section>
+      <div className="claims"><span>Many Small Farms<br />One Large Supply</span><span>Lower Costs<br />Higher Income</span><span>Transparent<br />On-Chain Records</span></div>
       <section className="content">
+        <h2 className="section-title">Sign in as</h2>
+        <div className="tiles">{TILES.map(([role, title, tone, src, pos, alt, text]) => <Link className="tile" href={`/login?role=${role}`} key={role}>
+          <img src={src} alt={alt} loading="lazy" style={{ objectPosition: pos }} /><span className={`chip ${tone}`}>{title}</span>
+          <div className="tile-body"><p>{text}</p><span className="pill">Continue</span></div>
+        </Link>)}</div>
+        <p className="muted admin-link">Running the marketplace? <Link href="/login?role=admin">Sign in as admin</Link></p>
         <h2 className="section-title">What it does</h2>
         <div className="feature-grid">{FEATURES.map(([title, text]) => <article className="card" key={title}><h3>{title}</h3><p className="muted">{text}</p></article>)}</div>
-        <h2 className="section-title">Sign in as</h2>
-        <div className="feature-grid">{ROLES.map(([role, title, text]) => <Link className="card role-card" href={`/login?role=${role}`} key={role}><h3>{title}</h3><p className="muted">{text}</p><span className="pill">Continue</span></Link>)}</div>
         <p className="muted foot">Demo mode: sign-in uses sample data. <Link href="/tests">Open the full test console</Link>.</p>
       </section>
     </main>
