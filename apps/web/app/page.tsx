@@ -34,22 +34,28 @@ const Mark = () => <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="
 export default function Landing() {
   return <div className="shell">
     <header className="topbar">
-      <div className="topbar-row">
+      <div className="topbar-row wrap">
         <Link className="logo" href="/" aria-label="AgriLink home"><Mark /><span>Agri<span className="accent">Link</span></span></Link>
         <div className="topbar-actions"><span className="built-on">Built on Solana</span><Link className="button" href="/login">Sign in</Link></div>
       </div>
     </header>
     <main>
       <section className="hero2">
-        <div className="hero2-text">
-          <p className="tagline">Real Farmers · Real Food · Trusted Supply · A More Resilient Future</p>
-          <h1>From Local Farms <br />to <span className="accent">Global Tables</span></h1>
-          <p className="lead">Connecting farmers, transporters and professional buyers through a transparent, efficient and trusted marketplace.</p>
-          <ul className="benefits">{BENEFITS.map(([name, tone, label]) => <li key={name}><span className={`benefit-icon ${tone}`}>{ICONS[name]}</span>{label}</li>)}</ul>
-          <Link className="button cta" href="/login"><span>One Reliable Supplier<br />From Many Small Farms</span><span aria-hidden="true">→</span></Link>
-          <p className="demo-link"><Link href="/tests?role=buyer">Or browse the demo market</Link></p>
+        <div className="hills" aria-hidden="true"><svg viewBox="0 0 1440 220" preserveAspectRatio="none"><path d="M0 120 C180 60 320 150 520 100 C720 50 860 140 1060 90 C1220 50 1340 90 1440 70 V220 H0z" fill="#cfe5c4" opacity=".7" /><path d="M0 170 C220 120 380 200 620 150 C860 100 1040 190 1240 140 C1330 118 1400 140 1440 130 V220 H0z" fill="#a9d29a" opacity=".75" /></svg></div>
+        <div className="wrap hero2-grid">
+          <div className="hero2-text">
+            <p className="tagline">Real Farmers · Real Food · Trusted Supply · A More Resilient Future</p>
+            <h1>From Local Farms <br />to <span className="accent">Global Tables</span></h1>
+            <p className="lead">Connecting farmers, transporters and professional buyers through a transparent, efficient and trusted marketplace.</p>
+            <ul className="benefits">{BENEFITS.map(([name, tone, label]) => <li key={name}><span className={`benefit-icon ${tone}`}>{ICONS[name]}</span>{label}</li>)}</ul>
+            <Link className="button cta" href="/login"><span>One Reliable Supplier<br />From Many Small Farms</span><span aria-hidden="true">→</span></Link>
+            <p className="demo-link"><Link href="/tests?role=buyer">Or browse the demo market</Link></p>
+          </div>
+          <div className="hero2-photo"><img src="/img/hero-farmer.jpg" width="230" height="641" alt="Smiling farmer holding a crate of tomatoes and lettuce" fetchPriority="high" /></div>
+          <ol className="journey" aria-label="How the marketplace connects people">{TILES.map(([role, title, tone, src, pos, alt]) => <li key={role}>
+            <Link href={`/login?role=${role}`}><img src={src} alt={alt} width="72" height="72" style={{ objectPosition: pos }} /><span className={`chip-inline ${tone}`}>{title}</span></Link>
+          </li>)}</ol>
         </div>
-        <div className="hero2-photo"><img src="/img/hero-farmer.jpg" width="230" height="641" alt="Smiling farmer holding a crate of tomatoes and lettuce" fetchPriority="high" /></div>
       </section>
       <div className="claims"><span>Many Small Farms<br />One Large Supply</span><span>Lower Costs<br />Higher Income</span><span>Transparent<br />On-Chain Records</span></div>
       <section className="content">
