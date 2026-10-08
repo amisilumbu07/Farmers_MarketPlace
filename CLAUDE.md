@@ -15,6 +15,8 @@ docker compose up -d database                      # PostGIS 17; tests and the A
 cd apps/web && npm run dev                          # Next.js on :3000; set NEXT_PUBLIC_API_URL if the API is elsewhere
 ```
 
+Frontend routes (`apps/web/app/`): `/` landing page, `/login` demo role chooser (links to `/tests?role=<role>`), `/tests` the original all-in-one console (it auto-signs in from `?role=`). Per-role routes are planned in `output/pdf/step-a-and-frontend-plan.pdf`. Kill leftovers by pid: `pkill -f next-server` also matches your own shell.
+
 No linter is configured. The API serves a legacy static UI from `web/` at `/` (mounted last in `api/app/main.py`).
 
 Solana program (Anchor 0.30.1, from `blockchain/solana/`):
