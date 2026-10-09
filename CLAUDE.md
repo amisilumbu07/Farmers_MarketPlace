@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Farmer marketplace: FastAPI + PostgreSQL/PostGIS backend (`api/`), Next.js frontend (`apps/web/`), and a Solana settlement program (`blockchain/solana/`). `README.md` has the per-phase feature list and `FARMER_MARKETPLACE_BUILD_GUIDE.md` the original spec.
+Farmer marketplace: FastAPI + PostgreSQL/PostGIS backend (`api/`), Next.js frontend (`apps/web/`), and a Solana settlement program (`blockchain/solana/`). `README.md` is the public overview; `docs/BUILD_GUIDE.md` has the original spec and per-phase detail.
 
 ## Commands
 
